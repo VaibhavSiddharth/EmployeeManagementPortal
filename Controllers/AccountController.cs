@@ -111,8 +111,17 @@ namespace EmployeeRegistrationApp.Controllers
                 return View("Login", model);
             }
 
-            var signInResult = await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+            var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+            ApplicationUser user = null;
+            user =  await userManager.FindByEmailAsync(email);
+            if(user != null && !user.EmailConfirmed)
+            {
+                ModelState.AddModelError(String.Empty, "Email not confirmed yet");
+                return View("Login", model);
+            }
 
+            var signInResult = await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+            
             if (signInResult.Succeeded)
             {
                 return LocalRedirect(ReturnUrl);
@@ -120,11 +129,9 @@ namespace EmployeeRegistrationApp.Controllers
 
             else
             {
-                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+                
                 if(email != null)
-                {
-                    var user = await userManager.FindByEmailAsync(email);
-
+                {                    
                     if(user == null)
                     {
                         user = new ApplicationUser
@@ -166,6 +173,13 @@ namespace EmployeeRegistrationApp.Controllers
         {
             if (ModelState.IsValid)
             {
+                var user = await userManager.FindByEmailAsync(model.Email);
+                if(user!= null && !user.EmailConfirmed &&
+                    (await userManager.CheckPasswordAsync(user, model.Password)))
+                {
+                    ModelState.AddModelError(String.Empty, "Email not confirmed yet");
+                    return View(model);
+                }                
 
                 var result = await signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
 

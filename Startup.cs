@@ -36,6 +36,7 @@ namespace EmployeeRegistrationApp
             {
                 options.Password.RequiredLength = 10;
                 options.Password.RequiredUniqueChars = 3;
+                options.SignIn.RequireConfirmedEmail = true;
             }).AddEntityFrameworkStores<AppDbContext>();
 
 
