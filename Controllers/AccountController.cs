@@ -177,8 +177,16 @@ namespace EmployeeRegistrationApp.Controllers
                             UserName = info.Principal.FindFirstValue(ClaimTypes.Email),
                             Email = info.Principal.FindFirstValue(ClaimTypes.Email)
                         };
-                        await userManager.CreateAsync(user);                        
+                        await userManager.CreateAsync(user);
+                        var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+                        var confirmationLink = Url.Action("ConfirmEmail", "Account", 
+                                                          new { userId = user.Id, token = token }, Request.Scheme);
+                        logger.Log(LogLevel.Warning, confirmationLink);
+                        ViewBag.ErrorTitle = "Registration Successful";
+                        ViewBag.ErrorMessage = "Before you can login, Please confirm your email address " +
+                                               "by clicking on the confirmation link which we have emailed you.";
 
+                        return View("Error");
                     }
                     await userManager.AddLoginAsync(user, info);
                     await signInManager.SignInAsync(user, isPersistent: false);
