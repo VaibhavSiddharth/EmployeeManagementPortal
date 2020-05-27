@@ -40,6 +40,8 @@ namespace EmployeeRegistrationApp
             }).AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
 
+            services.Configure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromHours(5));
+
 
             services.AddMvc(option => option.EnableEndpointRouting = false).AddXmlSerializerFormatters();
 
