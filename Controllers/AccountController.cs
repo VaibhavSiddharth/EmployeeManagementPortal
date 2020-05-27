@@ -59,6 +59,44 @@ namespace EmployeeRegistrationApp.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ResetPassword(string email, string token)
+        {
+            if(email == null || token == null)
+            {
+                ModelState.AddModelError(String.Empty, "Invalid Password Reset Token");
+            }
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            var user = await userManager.FindByEmailAsync(model.Email);
+            if (ModelState.IsValid)
+            {
+                if (user != null)
+                {
+                    var result = await userManager.ResetPasswordAsync(user, model.Token, model.Password);
+                    if (result.Succeeded)
+                    {
+                        return View("ResetPasswordConfirmation");
+                    }
+
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError("", error.Description);
+
+                    }
+                    return View(model);
+                }
+                return View("ResetPasswordConfirmation");
+            }
+
+            return View(model);
+        }
         // GET: /<controller>/
         [HttpGet]
         [AllowAnonymous]
