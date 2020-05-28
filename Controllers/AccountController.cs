@@ -71,8 +71,50 @@ namespace EmployeeRegistrationApp.Controllers
         }
 
         [HttpGet]
-        public IActionResult ChangePassword()
+        public async Task<IActionResult> AddPassword()
         {
+            var user = await userManager.GetUserAsync(User);
+            var userHasPassword = await userManager.HasPasswordAsync(user);
+            if (userHasPassword)
+            {
+                return RedirectToAction("ChangePassword");
+            }
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddPassword(AddPasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user =await userManager.GetUserAsync(User);
+                var result = await userManager.AddPasswordAsync(user, model.NewPassword);
+                if (!result.Succeeded)
+                {
+                    foreach(var error in result.Errors)
+                    {
+                        ModelState.AddModelError("", error.Description);
+                        return View();
+                    }
+
+                }
+
+                await signInManager.RefreshSignInAsync(user);
+                return View("AddPasswordConfirm");
+            }
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ChangePassword()
+        {
+            var user =await userManager.GetUserAsync(User);
+            var userHasPassword= await userManager.HasPasswordAsync(user);
+            if (!userHasPassword)
+            {
+                return RedirectToAction("AddPassword");
+            }
             return View();
         }
 

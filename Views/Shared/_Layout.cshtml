@@ -51,7 +51,9 @@
                     <li class="nav-item">
                         <a asp-action="Create" asp-controller="Home" class="nav-link">Create</a>
                     </li>
-                    @if(signInManager.IsSignedIn(User) && (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))) 
+                    @if(signInManager.IsSignedIn(User) 
+                       // && (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+                        ) 
                     {
                     <li class="nav-item dropdown">
                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink"
@@ -66,7 +68,7 @@
                                Roles
                            </a>
                            <a class="dropdown-item" asp-action="ChangePassword" asp-controller="Account">
-                               Change Password
+                               Add/Change Password
                            </a>
                        </div>
                     </li>
