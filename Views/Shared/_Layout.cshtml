@@ -58,14 +58,17 @@
                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                            Manage
                        </a>
-                        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                            <a class="dropdown-item" asp-action="ListUsers" asp-controller="Administration">
-                                Users
-                            </a>
-                            <a class="dropdown-item" asp-action="ListRoles" asp-controller="Administration">
-                                Roles
-                            </a>
-                        </div>
+                       <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                           <a class="dropdown-item" asp-action="ListUsers" asp-controller="Administration">
+                               Users
+                           </a>
+                           <a class="dropdown-item" asp-action="ListRoles" asp-controller="Administration">
+                               Roles
+                           </a>
+                           <a class="dropdown-item" asp-action="ChangePassword" asp-controller="Account">
+                               Change Password
+                           </a>
+                       </div>
                     </li>
                     }
 
