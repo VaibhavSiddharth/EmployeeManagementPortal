@@ -4,8 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using EmployeeRegistrationApp.Models;
+using EmployeeRegistrationApp.Security;
 using EmployeeRegistrationApp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -19,6 +21,7 @@ namespace EmployeeRegistrationApp.Controllers
         private IEmployeeRepository _employeeRepository;
         private IHostingEnvironment hostingEnvironment;
         private readonly ILogger<HomeController> logger;
+        private readonly IDataProtector protector;
 
         //public string Index()
         //{
@@ -28,12 +31,16 @@ namespace EmployeeRegistrationApp.Controllers
         //{
         //    return Json(new { id = 1, Name = "Vaibhav" });
         //}
-        public HomeController(IEmployeeRepository employeeRepository, IHostingEnvironment hostingEnvironment,ILogger<HomeController> logger)
+        public HomeController(IEmployeeRepository employeeRepository, IHostingEnvironment hostingEnvironment,
+                              ILogger<HomeController> logger,
+                              IDataProtectionProvider dataProtectionProvider,
+                              DataProtectionPurposeStrings dataProtectionPurposeStrings)
         {
             
             this._employeeRepository = employeeRepository;
             this.hostingEnvironment = hostingEnvironment;
             this.logger = logger;
+            protector = dataProtectionProvider.CreateProtector(dataProtectionPurposeStrings.EmployeeIdRouteValue);
         }
 
         //[Route("")]  
@@ -42,7 +49,11 @@ namespace EmployeeRegistrationApp.Controllers
         public ViewResult Index() 
         {
             //return _employeeRepository.GetEmployee(101).Name;
-            IEnumerable<Employee> employeeList = _employeeRepository.GetEmployees();
+            IEnumerable<Employee> employeeList = _employeeRepository.GetEmployees().
+                                                  Select( e=> {
+                                                      e.EncryptedId = protector.Protect(e.Id.ToString());
+                                                      return e;
+                                                  });
             return View(employeeList);
         }
 
@@ -52,20 +63,15 @@ namespace EmployeeRegistrationApp.Controllers
         //}
         //[Route("{id?}")]
         [AllowAnonymous]
-        public ViewResult Details(int? id)
+        public ViewResult Details(string id)
         {
-            //throw new Exception("An error occured while processing the request");
-            logger.LogTrace("Trace Log");
-            logger.LogDebug("Debug Log");
-            logger.LogInformation("Information Log");
-            logger.LogWarning("Warning Log");
-            logger.LogError("Error Log");
-            logger.LogCritical("Critical Log");
-            Employee employee = _employeeRepository.GetEmployee(id.Value);
+            
+            int employeeId = Convert.ToInt32(protector.Unprotect(id));
+            Employee employee = _employeeRepository.GetEmployee(employeeId);
             if(employee == null) 
             {
                 Response.StatusCode = 404;
-                return View("EmployeeNotFound", id.Value);
+                return View("EmployeeNotFound", employeeId);
             }
 
             HomeDetailsViewModel homeDetailsViewModel = new HomeDetailsViewModel
@@ -74,13 +80,7 @@ namespace EmployeeRegistrationApp.Controllers
                 Employee = employee
             };
 
-            //return View(employee);
-            //return View("TestView");
-            //return View("../Test/TestView");
-            //ViewData["Employee"] = employee;
-            //ViewData["PageTitle"] = "Employee-Details";
-            //ViewBag.PageTitle = "Employee-Details";
-            //ViewBag.Employee = employee;
+            
 
             return View(homeDetailsViewModel);
         }
